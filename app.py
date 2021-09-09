@@ -3,6 +3,7 @@ from tkinter import END
 from tkinter.messagebox import showerror
 from serial import Serial
 from threading import Thread
+from time import time
 
 
 class App(Frame):
@@ -65,6 +66,13 @@ class App(Frame):
         complete = 0
         result = ""
         with Serial("COM1", 9600, timeout=5) as ser:
+            print("Establishing a connection with the router")
+            ready = self.wait_until_ready(ser)
+            if not ready:
+                showerror(title="Error", message="Not able to enter privilege exec mode")
+                self.extracting = False
+                return
+            print('Router ready')
             self.write_cmd(ser, "enable")  # enter privilege exec mode
             self.write_cmd(ser, "terminal length 0")  # commands will not pause
             for cmd in self.commands:
@@ -90,3 +98,24 @@ class App(Frame):
             if "!" not in line and line[:-2] != "":
                 output += f"{line[:-2]}\n"  # get line without "\r\n"
         return output[:-6]  # clear "Route" bit at end
+
+    def wait_until_ready(self, ser: Serial, timeout: int = 60):  # waits for the router to enter privilege exec mode
+        init_time = time()
+        self.write_cmd(ser, "\r")  # newline to startup device
+        count = 0
+        while True:
+            line = ser.readline().decode()
+            if count > 1:  # after the initial dialogue, lines begin to look like line="", so after we get two blank lines we know the router has probably booted in user exec
+                return True
+            elif line == "":
+                count += 1
+            elif time() > init_time + timeout:  # 60 seconds have passed so the router hasn't booted correctly
+                return False
+            elif "Router" in line and len(
+                    line) > 9:  # if the router is currently in a mode above priv exec, return to priv exec and begin
+                self.write_cmd(ser, "end")
+                return True
+            elif "Would you like to enter the initial configuration dialog? [yes/no]:" in line:
+                self.write_cmd(ser, "no")
+            else:
+                count = 0
