@@ -14,7 +14,7 @@ class App(Frame):
         self.x = 400
         self.y = 200
 
-        self.widgets = []
+        self.widgets = {}
         self.init_basic()
         self.init_widgets()
 
@@ -29,28 +29,35 @@ class App(Frame):
         self.master.resizable(False, False)
 
     def init_widgets(self):
+        # Button to execute commands in a router terminal
         btn_start = Button(self.master, text="Extract", command=self.extract)
         btn_start.place(x=10, y=40, width=190, height=150)
+        self.widgets["btn_start"] = btn_start
 
-        entry_cmd = Entry(self.master, text="red", fg="blue")
+        # Entry to write a command to be executed
+        entry_cmd = Entry(self.master, text="red", fg="green")
         entry_cmd.place(x=50, y=10, width=150, height=25)
+        self.widgets["entry_cmd"] = entry_cmd
 
+        # Button to add a command to be executed
         btn_addcmd = Button(self.master, text="add", command=self.add_cmd)
         btn_addcmd.place(x=10, y=10)
+        self.widgets["btn_addcmd"] = btn_addcmd
 
+        # List of commands to be executed
         scroll_cmdlist = Scrollbar(self.master)
         scroll_cmdlist.place(x=250, y=10, width=120, height=180)
         listbox_cmdlist = Listbox(self.master, yscrollcommand=scroll_cmdlist.set)
         listbox_cmdlist.place(x=250, y=30, width=120, height=140)
         scroll_cmdlist.config(command=listbox_cmdlist.yview)
-
-        self.widgets += [btn_start, entry_cmd, btn_addcmd, listbox_cmdlist]
+        self.widgets["scroll_cmdlist"] = scroll_cmdlist
+        self.widgets["listbox_cmdlist"] = listbox_cmdlist
 
     def add_cmd(self):
-        cmd = self.widgets[1].get()
+        cmd = self.widgets["entry_cmd"].get()
         self.commands.append(cmd)
-        self.widgets[1].delete(0, last=len(cmd))
-        self.widgets[-1].insert(END, cmd)
+        self.widgets["entry_cmd"].delete(0, last=len(cmd))
+        self.widgets["listbox_cmdlist"].insert(END, cmd)
 
     def extract(self):
         self.progress = 0
