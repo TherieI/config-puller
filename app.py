@@ -48,12 +48,16 @@ class App(Frame):
 
         # List of commands to be executed
         scroll_cmdlist = Scrollbar(self.master)
-        scroll_cmdlist.place(x=250, y=10, width=120, height=180)
+        scroll_cmdlist.place(x=250, y=10, width=120, height=140)
         listbox_cmdlist = Listbox(self.master, yscrollcommand=scroll_cmdlist.set)
-        listbox_cmdlist.place(x=250, y=30, width=120, height=140)
+        listbox_cmdlist.place(x=250, y=30, width=120, height=100)
         scroll_cmdlist.config(command=listbox_cmdlist.yview)
         self.widgets["scroll_cmdlist"] = scroll_cmdlist
-        self.widgets["listbox_cmdlist"] = listbox_cmdlist
+        self.widgets["lb_cmdlist"] = listbox_cmdlist
+
+        # Button to clear listbox
+        btn_clear = Button(self.master, text="Clear", command=self.clear_cmds)
+        btn_clear.place(x=250, y=160, width=120, height=20)
 
         # Combobox with label to select ports
         lb_ports = Label(self.master, text="Select Port:")
@@ -73,7 +77,11 @@ class App(Frame):
         cmd = self.widgets["entry_cmd"].get()
         self.commands.append(cmd)
         self.widgets["entry_cmd"].delete(0, last=len(cmd))
-        self.widgets["listbox_cmdlist"].insert(END, cmd)
+        self.widgets["lb_cmdlist"].insert(END, cmd)
+
+    def clear_cmds(self):
+        self.widgets["lb_cmdlist"].delete(0, END)
+        self.commands = []
 
     def extract(self):
         if len(self.commands) <= 0:
